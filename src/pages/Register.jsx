@@ -1,55 +1,73 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { Link, useNavigate } from "react-router";
 
-export default function Register() {
-  const navigate = useNavigate();
+const Register = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
-  const handleSubmit = () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
 
-    const apiObj = {
-      name: name,
-      email: email,
-      password: password,
-    };
-    axios({
-      method: "POST",
-      url: "https://eval-backend-lyart.vercel.app/api/auth/register",
-      data: apiObj,
-    }).then((res) => {
-      navigate("/login");
+    try {
+      const response = await axios.post(
+        "https://eval-backend-lyart.vercel.app/api/auth/register",
+        { name, email, password }
+      );
       
-    });
+      if (response.data.success) {
+        navigate("/login");
+      } else {
+        setError(response.data.message || "Registration failed");
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || "Something went wrong");
+    }
   };
+
   return (
     <div>
       <h2>Create an account</h2>
-      <input
-        value={name}
-        type="text"
-        placeholder="name"
-        onChange={(e) => setName(e.target.value)}
-      />
-      <input
-        value={email}
-        type="email"
-        placeholder="email"
-        onChange={(e) => setEmail(e.target.value)}
-      />
-      <input
-        value={password}
-        type="password"
-        placeholder="password"
-        onChange={(e) => setPassword(e.target.value)}
-      />
-
-      <button onClick={handleSubmit}>Signup</button>
+      {error && <div style={{ color: "red" }}>{error}</div>}
+      <form onSubmit={handleSubmit}>
+        <div>
+          <input
+            value={name}
+            type="text"
+            placeholder="Name"
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+        </div>
+        <div>
+          <input
+            value={email}
+            type="email"
+            placeholder="Email"
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </div>
+        <div>
+          <input
+            value={password}
+            type="password"
+            placeholder="Password"
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
+        <button type="submit">Sign Up</button>
+      </form>
       <div>
-        Already have an account? <Link to='/login'>Login</Link>
+        Already have an account? <Link to="/login">Login</Link>
       </div>
     </div>
   );
-}
+};
+
+export default Register;
